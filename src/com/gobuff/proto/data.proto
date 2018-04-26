@@ -1,0 +1,8 @@
+syntax = "proto3";
+package proto;
+
+message Data {
+    int32 code = 1;
+    string uid = 2;
+    bytes data = 3;
+}
