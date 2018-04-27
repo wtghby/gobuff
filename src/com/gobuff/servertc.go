@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./server"
-	"./config"
+	"gobuff/src/com/gobuff/server"
+	"gobuff/src/com/gobuff/config"
 )
 
 func main() {

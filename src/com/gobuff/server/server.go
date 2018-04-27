@@ -2,14 +2,14 @@ package server
 
 import (
 	"net"
-	"../config"
+	"gobuff/src/com/gobuff/config"
 	"strconv"
-	"../log"
+	"gobuff/src/com/gobuff/log"
 	"time"
-	"github.com/golang/protobuf/proto"
 	"fmt"
-	pb "../proto"
+	pb "gobuff/src/com/gobuff/proto"
 	"encoding/binary"
+	"gobuff/src/com/gobuff/serialize"
 )
 
 var clients = make(map[string]net.Conn)
@@ -39,21 +39,16 @@ func Run(con config.Config) {
 }
 
 func sendLoop() {
-	//index := 0
 	for {
-		//str := "当前连接数：" + strconv.Itoa(len(clients)) + "发送次数：" + strconv.Itoa(index)
 		for _, conn := range clients {
 			handleSend(conn)
 		}
-		//index++
-
-		time.Sleep(100)
+		time.Sleep(50 * time.Millisecond)
 	}
 
 }
 
 func handleSend(conn net.Conn) {
-	//d := "this is server message"
 	t := time.Now()
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, uint64(t.UnixNano()))
@@ -62,58 +57,32 @@ func handleSend(conn net.Conn) {
 		Uid:  "uid",
 		Data: b,
 	}
-	pData, err := proto.Marshal(data)
+
+	buff, err := serialize.ToBytes(data)
 	if err != nil {
 		panic(err)
 	}
-
-	conn.Write(pData)
+	conn.Write(buff)
 }
 
 func recLoop() {
 	for {
 		for _, conn := range clients {
+			//hrec(conn)
 			handleRec(conn)
-			//buff := make([]byte, 1024*2, 1024*2)
-			//len, err := conn.Read(buff)
-			//if err != nil {
-			//	log.Loge("读取数据失败")
-			//}
-			//if len > 0 {
-			//	log.Log("[收到消息]：", string(buff[:len]))
-			//}
 		}
-		time.Sleep(100)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
 func handleRec(conn net.Conn) {
-	buff := make([]byte, 1024*2, 1024*2)
-
-	for {
-		n, err := conn.Read(buff)
-		if err != nil {
-			log.Log(conn.RemoteAddr().String(), "connection error:", err)
-			return
-		}
-
-		rec := &pb.Data{}
-		data := buff[:n]
-		err = proto.Unmarshal(data, rec)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
-
-		//send, err := proto.Marshal(rec)
-		//if err != nil {
-		//	panic(err)
-		//}
-
-		//fmt.Println(send)
-		//conn.Write(send)
-		//fmt.Println("Server send ovwr")
+	rec := &pb.Data{}
+	err := serialize.ToProto(conn, rec)
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
+
 }
 
 func handleConn(conn net.Conn) {
