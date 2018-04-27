@@ -9,7 +9,8 @@ import (
 	"fmt"
 	pb "gobuff/src/com/gobuff/proto"
 	"encoding/binary"
-	"gobuff/src/com/gobuff/serialize"
+	"gobuff/src/com/gobuff/transfer"
+	"gobuff/src/com/gobuff/constant"
 )
 
 var clients = make(map[string]net.Conn)
@@ -34,7 +35,7 @@ func Run(con config.Config) {
 
 		log.Log("新连接：", conn.RemoteAddr())
 
-		handleConn(conn)
+		clients[conn.RemoteAddr().String()] = conn
 	}
 }
 
@@ -57,12 +58,10 @@ func handleSend(conn net.Conn) {
 		Uid:  "uid",
 		Data: b,
 	}
-
-	buff, err := serialize.ToBytes(data)
+	err := transfer.Write(conn, data)
 	if err != nil {
 		panic(err)
 	}
-	conn.Write(buff)
 }
 
 func recLoop() {
@@ -77,14 +76,23 @@ func recLoop() {
 
 func handleRec(conn net.Conn) {
 	rec := &pb.Data{}
-	err := serialize.ToProto(conn, rec)
+	err := transfer.Read(conn, rec)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
-
+	if rec.Code == constant.CodeHeartBeat {
+		fmt.Println("收到客户端心跳包")
+		sendHeartBeat(conn)
+	} else {
+		//fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
+	}
 }
 
-func handleConn(conn net.Conn) {
-	clients[conn.RemoteAddr().String()] = conn
+func sendHeartBeat(conn net.Conn) {
+	heartBeat := &pb.Data{Code: constant.CodeHeartBeat}
+	err := transfer.Write(conn, heartBeat)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("发送心跳包")
 }

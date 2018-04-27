@@ -1,7 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"time"
+	"fmt"
+)
 
 func main() {
-	fmt.Print("hello")
+	hh()
+}
+
+func hh() {
+	tick := time.NewTicker(1 * time.Second)
+	for {
+		select {
+		case <-tick.C:
+			fmt.Println("执行")
+		}
+	}
 }

@@ -6,8 +6,9 @@ import (
 	"os"
 	pb "gobuff/src/com/gobuff/proto"
 	"time"
-	"encoding/binary"
-	"gobuff/src/com/gobuff/serialize"
+	"gobuff/src/com/gobuff/constant"
+	"gobuff/src/com/gobuff/transfer"
+	"gobuff/src/com/gobuff/heartbeat"
 )
 
 var ch = make(chan int)
@@ -31,6 +32,7 @@ func main() {
 	defer conn.Close()
 	go sendStr(conn)
 	go recServer(conn)
+	go heartbeat.SendLoop(conn)
 	//send(conn)
 	<-ch
 }
@@ -38,7 +40,6 @@ func main() {
 func sendStr(conn net.Conn) {
 	for {
 		send(conn)
-		//s(conn)
 		time.Sleep(50 * time.Millisecond)
 	}
 }
@@ -52,29 +53,31 @@ func recServer(conn net.Conn) {
 
 func handleRec(conn net.Conn) {
 	rec := &pb.Data{}
-	err := serialize.ToProto(conn, rec)
+	err := transfer.Read(conn, rec)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
-	ti := int64(binary.BigEndian.Uint64(rec.Data))
-	fmt.Println("Send Time：", ti)
-	now := time.Now()
-	fmt.Println("接收时间：", now.UnixNano())
+	if rec.Code == constant.CodeHeartBeat {
+		fmt.Println("收到服务器心跳包")
+	} else {
+		//fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
+		//ti := int64(binary.BigEndian.Uint64(rec.Data))
+		//fmt.Println("Send Time：", ti)
+		//now := time.Now()
+		//fmt.Println("接收时间：", now.UnixNano())
+	}
+
 }
 
 func send(conn net.Conn) {
 	d := "this is post message"
-
 	data := &pb.Data{
 		Code: 22,
 		Uid:  "uid",
 		Data: []byte(d),
 	}
-	buff, err := serialize.ToBytes(data)
+	err := transfer.Write(conn, data)
 	if err != nil {
 		panic(err)
 	}
-	conn.Write(buff)
-	fmt.Println("send to server,size : ", len(buff))
 }
