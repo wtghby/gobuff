@@ -9,6 +9,7 @@ import (
 	"gobuff/src/com/gobuff/constant"
 	"gobuff/src/com/gobuff/transfer"
 	"gobuff/src/com/gobuff/heartbeat"
+	"encoding/binary"
 )
 
 var ch = make(chan int)
@@ -60,11 +61,11 @@ func handleRec(conn net.Conn) {
 	if rec.Code == constant.CodeHeartBeat {
 		fmt.Println("收到服务器心跳包")
 	} else {
-		//fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
-		//ti := int64(binary.BigEndian.Uint64(rec.Data))
-		//fmt.Println("Send Time：", ti)
-		//now := time.Now()
-		//fmt.Println("接收时间：", now.UnixNano())
+		fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
+		ti := int64(binary.BigEndian.Uint64(rec.Data))
+		fmt.Println("Send Time：", ti)
+		now := time.Now()
+		fmt.Println("接收时间：", now.UnixNano())
 	}
 
 }

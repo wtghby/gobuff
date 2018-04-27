@@ -29,7 +29,19 @@ func Send(conn net.Conn) {
 	fmt.Println("发送心跳包")
 }
 
-func ServerDeal(conn net.Conn) {
-	tick := time.NewTicker(constant.HEART_BEAT_PERIOD * time.Second)
-	select {}
+func ServerDeal(conn net.Conn, stop chan bool, send chan bool) {
+	timeout := time.After(constant.HEART_BEAT_PERIOD * 2 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			//超时
+			stop <- true
+			conn.Close()
+			break
+		case <-send:
+			timeout = time.After(constant.HEART_BEAT_PERIOD * time.Second)
+			break
+		}
+	}
+
 }
