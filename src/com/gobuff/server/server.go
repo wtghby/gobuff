@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"gobuff/src/com/gobuff/log"
 	"gobuff/src/com/gobuff/connection"
-	"gobuff/src/com/gobuff/cache"
 )
 
 func Run(con config.Config) {
@@ -26,7 +25,6 @@ func Run(con config.Config) {
 
 		log.Log("新连接：", conn.RemoteAddr())
 
-		cache.Clients[conn.RemoteAddr().String()] = conn
 		go connection.NewConnection(conn)
 	}
 }

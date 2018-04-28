@@ -56,10 +56,13 @@ L:
 				}
 				if rec.Code == constant.CodeHeartBeat {
 					fmt.Println("收到客户端心跳包")
-					sendHeartBeat(conn)
+					heartbeat.SendHeartBeat(conn)
 					send <- true
+				} else if rec.Code == constant.CodeUserId {
+					cache.Clients[rec.Uid] = conn
+					fmt.Println(cache.Clients)
 				} else {
-					fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
+					//fmt.Println("接收到数据：", conn.RemoteAddr(), rec)
 				}
 
 				time.Sleep(50 * time.Millisecond)
@@ -69,13 +72,4 @@ L:
 
 	}
 
-}
-
-func sendHeartBeat(conn net.Conn) {
-	heartBeat := &pb.Data{Code: constant.CodeHeartBeat}
-	err := transfer.Write(conn, heartBeat)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("发送心跳包")
 }

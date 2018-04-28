@@ -45,3 +45,12 @@ func ServerDeal(conn net.Conn, stop chan bool, send chan bool) {
 	}
 
 }
+
+func SendHeartBeat(conn net.Conn) {
+	heartBeat := &pb.Data{Code: constant.CodeHeartBeat}
+	err := transfer.Write(conn, heartBeat)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("发送心跳包")
+}

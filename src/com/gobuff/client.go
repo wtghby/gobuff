@@ -31,11 +31,23 @@ func main() {
 
 	fmt.Println("connect success")
 	defer conn.Close()
+	sendUid(conn)
 	go sendStr(conn)
 	go recServer(conn)
 	go heartbeat.SendLoop(conn)
 	//send(conn)
 	<-ch
+}
+
+func sendUid(conn net.Conn) {
+	data := &pb.Data{
+		Code: constant.CodeUserId,
+		Uid:  "xxxxaaassss123",
+	}
+	err := transfer.Write(conn, data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func sendStr(conn net.Conn) {

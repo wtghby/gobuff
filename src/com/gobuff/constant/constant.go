@@ -6,4 +6,5 @@ const (
 
 	//指令集合
 	CodeHeartBeat int32 = 11 //心跳指令
+	CodeUserId    int32 = 12 //发送uid指令
 )
