@@ -30,16 +30,16 @@ func Send(conn net.Conn) {
 }
 
 func ServerDeal(conn net.Conn, stop chan bool, send chan bool) {
-	timeout := time.After(constant.HEART_BEAT_PERIOD * 2 * time.Second)
+	timeout := time.NewTimer(constant.HEART_BEAT_PERIOD * constant.HEART_BEAT_RATIO * time.Second)
 	for {
 		select {
-		case <-timeout:
+		case <-timeout.C:
 			//超时
 			stop <- true
 			conn.Close()
 			break
 		case <-send:
-			timeout = time.After(constant.HEART_BEAT_PERIOD * time.Second)
+			timeout = time.NewTimer(constant.HEART_BEAT_PERIOD * constant.HEART_BEAT_RATIO * time.Second)
 			break
 		}
 	}

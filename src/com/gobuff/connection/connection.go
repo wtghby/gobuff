@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"gobuff/src/com/gobuff/heartbeat"
 	"gobuff/src/com/gobuff/cache"
+	"gobuff/src/com/gobuff/log"
 )
 
 func NewConnection(conn net.Conn) {
@@ -44,7 +45,7 @@ L:
 		select {
 		case <-stop:
 			delete(cache.Clients, conn.RemoteAddr().String())
-			fmt.Println("删除连接：", conn.RemoteAddr().String())
+			log.Log("连接超时断开", conn.RemoteAddr().String())
 			break L
 		default:
 			{
